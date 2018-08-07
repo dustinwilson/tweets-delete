@@ -41,7 +41,7 @@ fgetcsv($handle, 0, ',');
 $t = fgetcsv($handle, 0, ',');
 $tweetTimestamp = strtotime($t[3]);
 if ($tweetTimestamp < $timestamp) {
-    mail('dustin@dustinwilson.com', "Tweets Delete requires assistance: ".date("Y-m-d"), wordwrap("Tweets Delete requires a new saved Twitter archive (https://twitter.com/settings/account#tweet_export).", 70), 'From: Tweets Delete <system@dustinwilson.com>');
+    mail(EMAIL_ADDRESS, "Tweets Delete requires assistance: ".date("Y-m-d"), wordwrap("Tweets Delete requires a new saved Twitter archive (https://twitter.com/settings/account#tweet_export).", 70), 'From: Tweets Delete <system@dustinwilson.com>');
     exit(1);
 }
 
