@@ -1,7 +1,5 @@
 #!/usr/bin/env php
 <?php
-ini_set('memory_limit','1G');
-
 require_once 'vendor/autoload.php';
 use Abraham\TwitterOAuth\TwitterOAuth;
 
