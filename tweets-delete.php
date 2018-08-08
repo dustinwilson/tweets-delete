@@ -4,6 +4,7 @@ require_once 'vendor/autoload.php';
 use Abraham\TwitterOAuth\TwitterOAuth;
 
 $dir = dirname(__FILE__);
+date_default_timezone_set(LOG_TIMEZONE);
 
 // Get the timestamp of exactly one year ago.
 $timestamp = time() - 31557600;
@@ -59,13 +60,13 @@ do {
 
     $result = $twitter->post('statuses/destroy', [ 'id' => $t[0] ]);
     if (isset($result->errors) && count($result->errors) === 0) {
-        echo "Deleted #{$t[0]} | {$t[5]}\n";
+        echo date(LOG_TIMESTAMP_FORMAT) . " Deleted #{$t[0]} | {$t[5]}\n";
     }
 
     file_put_contents("$dir/processed.log", "{$t[0]}\n", FILE_APPEND);
 
     // Twitter API allows for 300 writes per minute, so delay for 200ms between each
     // call just to be safe.
-    echo "Waiting for 200ms\n";
+    echo date(LOG_TIMESTAMP_FORMAT) . " Waiting for 200ms\n";
     usleep(200000);
 } while (($t = fgetcsv($handle, 0, ',')) !== false);
