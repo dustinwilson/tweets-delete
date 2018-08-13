@@ -59,7 +59,7 @@ do {
     }
 
     $result = $twitter->post('statuses/destroy', [ 'id' => $t[0] ]);
-    if (isset($result->errors) && count($result->errors) === 0) {
+    if (!isset($result->errors) || count($result->errors) === 0) {
         echo date(LOG_TIMESTAMP_FORMAT) . " Deleted #{$t[0]} | {$t[5]}\n";
     }
 
