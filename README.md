@@ -16,7 +16,7 @@ This is a php script meant to be run on a UNIX-compatible system as a cronjob wh
 4. Rename `config.example.php` to `config.php` and fill with your keys.
 5. Copy `tweet.js` to the same folder as Tweets Delete and rename to `tweets.json`.
 6. Remove `window.YTD.tweet.part0 = ` from beginning of `tweets.json`.
-5. `composer install`.
-6. `./tweets-delete.php`.
+7. `composer install`.
+8. `./tweets-delete.php`.
 
 [MIT License](https://opensource.org/licenses/MIT)
