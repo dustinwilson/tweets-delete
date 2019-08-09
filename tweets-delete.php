@@ -16,31 +16,19 @@ if (is_file("$dir/processed.log")) {
     touch("$dir/processed.log");
 }
 
-$csv = "$dir/tweets.csv";
-if (($handle = fopen($csv, 'r')) === FALSE) {
-    exit("Unable to open file \"$csv\"\n");
+$json = "$dir/tweets.json";
+if (!is_file($json)) {
+    exit("Unable to open file \"$json\"\n");
 }
 
-// Skip the headers.
-fgetcsv($handle, 0, ',');
-
-/*
- 0 => 'tweet_id',
- 1 => 'in_reply_to_status_id',
- 2 => 'in_reply_to_user_id',
- 3 => 'timestamp',
- 4 => 'source',
- 5 => 'text',
- 6 => 'retweeted_status_id',
- 7 => 'retweeted_status_user_id',
- 8 => 'retweeted_status_timestamp',
- 9 => 'expanded_urls',
-*/
+$json = json_decode(file_get_contents($json), true);
+if (is_null($json)) {
+    exit("Supplied JSON file \"$json\" is formatted incorrectly. Did you remove the \"window.YTD.tweet.part0 =\" from the beginning?\n");
+}
 
 // The first in the list should be the newest tweet. If its timestamp is less
 // than a year from now a new tweet archive is necessary to continue. Exit.
-$t = fgetcsv($handle, 0, ',');
-$tweetTimestamp = strtotime($t[3]);
+$tweetTimestamp = strtotime($json[0]['created_at']);
 if ($tweetTimestamp < $timestamp) {
     mail(EMAIL_ADDRESS, "Tweets Delete requires assistance: ".date("Y-m-d"), wordwrap("Tweets Delete requires a new saved Twitter archive (https://twitter.com/settings/account#tweet_export).", 70), 'From: Tweets Delete <' . EMAIL_ADDRESS . '>');
     exit(1);
@@ -48,25 +36,27 @@ if ($tweetTimestamp < $timestamp) {
 
 $twitter = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
 
-do {
-    if (in_array($t[0], $log)) {
+foreach ($json as $tweet) {
+    $id = $tweet['id_str'];
+
+    if (in_array($id, $log)) {
         continue;
     }
 
-    $tweetTimestamp = strtotime($t[3]);
-    if ($tweetTimestamp >= $timestamp || in_array($t[0], IGNORE_TWEETS)) {
+    $tweetTimestamp = strtotime($tweet['created_at']);
+    if ($tweetTimestamp >= $timestamp || in_array($id, IGNORE_TWEETS)) {
         continue;
     }
 
-    $result = $twitter->post('statuses/destroy', [ 'id' => $t[0] ]);
+    $result = $twitter->post('statuses/destroy', [ 'id' => $id ]);
     if (!isset($result->errors) || count($result->errors) === 0) {
-        echo date(LOG_TIMESTAMP_FORMAT) . " Deleted #{$t[0]} | {$t[5]}\n";
+        echo date(LOG_TIMESTAMP_FORMAT) . " Deleted #{$id} | {$tweet['full_text']}\n";
     }
 
-    file_put_contents("$dir/processed.log", "{$t[0]}\n", FILE_APPEND);
+    file_put_contents("$dir/processed.log", "{$id}\n", FILE_APPEND);
 
     // Twitter API allows for 300 writes per minute, so delay for 200ms between each
     // call just to be safe.
     echo date(LOG_TIMESTAMP_FORMAT) . " Waiting for 200ms\n";
     usleep(200000);
-} while (($t = fgetcsv($handle, 0, ',')) !== false);
+}
