@@ -28,7 +28,7 @@ if (is_null($json)) {
 
 // The first in the list should be the newest tweet. If its timestamp is less
 // than a year from now a new tweet archive is necessary to continue. Exit.
-$tweetTimestamp = strtotime($json[0]['created_at']);
+$tweetTimestamp = strtotime($json[0]['tweet']['created_at']);
 if ($tweetTimestamp < $timestamp) {
     mail(EMAIL_ADDRESS, "Tweets Delete requires assistance: ".date("Y-m-d"), wordwrap("Tweets Delete requires a new saved Twitter archive (https://twitter.com/settings/account#tweet_export).", 70), 'From: Tweets Delete <' . EMAIL_ADDRESS . '>');
     exit(1);
@@ -37,6 +37,7 @@ if ($tweetTimestamp < $timestamp) {
 $twitter = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
 
 foreach ($json as $tweet) {
+    $tweet = $tweet['tweet'];
     $id = $tweet['id_str'];
 
     if (in_array($id, $log)) {
