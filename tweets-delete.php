@@ -29,11 +29,11 @@ if (is_null($json)) {
 // In 2021 Twitter stopped sorting them by date, so let's do Twitter's work for
 // them, shall we?
 if (isset($json[0]['sorted']) && $json[0]['sorted']) {
-    usort($json, function(&$a, &$b) {
-        $aa = strtotime($a['tweet']['created_at']);
-        $bb = strtotime($b['tweet']['created_at']);
+    usort($json, function($a, $b) {
+        $a = strtotime($a['tweet']['created_at']);
+        $b = strtotime($b['tweet']['created_at']);
 
-        return ($aa > $bb) ? -1 : 1;
+        return ($a > $b) ? -1 : 1;
     });
 
     $json[0]['sorted'] = true;
