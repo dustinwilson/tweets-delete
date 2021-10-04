@@ -16,14 +16,28 @@ if (is_file("$dir/processed.log")) {
     touch("$dir/processed.log");
 }
 
-$json = "$dir/tweets.json";
-if (!is_file($json)) {
-    exit("Unable to open file \"$json\"\n");
+$jsonFile = "$dir/tweets.json";
+if (!is_file($jsonFile)) {
+    exit("Unable to open file \"$jsonFile\"\n");
 }
 
-$json = json_decode(file_get_contents($json), true);
+$json = json_decode(file_get_contents($jsonFile), true);
 if (is_null($json)) {
-    exit("Supplied JSON file \"$json\" is formatted incorrectly. Did you remove the \"window.YTD.tweet.part0 =\" from the beginning?\n");
+    exit("Supplied JSON file \"$jsonFile\" is formatted incorrectly. Did you remove the \"window.YTD.tweet.part0 =\" from the beginning?\n");
+}
+
+// In 2021 Twitter stopped sorting them by date, so let's do Twitter's work for
+// them, shall we?
+if (isset($json[0]['sorted']) && $json[0]['sorted']) {
+    usort($json, function(&$a, &$b) {
+        $aa = strtotime($a['tweet']['created_at']);
+        $bb = strtotime($b['tweet']['created_at']);
+
+        return ($aa > $bb) ? -1 : 1;
+    });
+
+    $json[0]['sorted'] = true;
+    file_put_contents($jsonFile, json_encode($json, JSON_PRETTY_PRINT);
 }
 
 // The first in the list should be the newest tweet. If its timestamp is less
